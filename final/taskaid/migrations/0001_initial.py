@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('status', models.CharField(max_length=50)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='postures', to='studybuddy.studysession')),
+                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='postures', to='taskaid.studysession')),
             ],
         ),
         migrations.CreateModel(
@@ -53,13 +53,13 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('count', models.IntegerField()),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='blink_events', to='studybuddy.studysession')),
+                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='blink_events', to='taskaid.studysession')),
             ],
         ),
         migrations.AddField(
             model_name='studysession',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sessions', to='studybuddy.studyuser'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sessions', to='taskaid.studyuser'),
         ),
         migrations.CreateModel(
             name='Streak',
@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
                 ('current_streak', models.IntegerField(default=0)),
                 ('longest_streak', models.IntegerField(default=0)),
                 ('last_study_date', models.DateField(blank=True, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='streaks', to='studybuddy.studyuser')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='streaks', to='taskaid.studyuser')),
             ],
         ),
         migrations.CreateModel(
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
                 ('timestamp', models.DateTimeField(default=django.utils.timezone.now)),
                 ('status', models.CharField(choices=[('sent', 'Sent'), ('snoozed', 'Snoozed'), ('completed', 'Completed')], default='sent', max_length=20)),
                 ('scheduled_for', models.DateTimeField(blank=True, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reminders', to='studybuddy.studyuser')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reminders', to='taskaid.studyuser')),
             ],
         ),
         migrations.CreateModel(
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('text', models.TextField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='insights', to='studybuddy.studyuser')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='insights', to='taskaid.studyuser')),
             ],
         ),
         migrations.CreateModel(
@@ -98,7 +98,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
                 ('amount_ml', models.PositiveIntegerField()),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hydration_logs', to='studybuddy.studyuser')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hydration_logs', to='taskaid.studyuser')),
             ],
         ),
         migrations.CreateModel(
@@ -111,7 +111,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(choices=[('pending', 'Pending'), ('in-progress', 'In Progress'), ('done', 'Done')], default='pending', max_length=20)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('completed_at', models.DateTimeField(blank=True, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='studybuddy.studyuser')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='taskaid.studyuser')),
             ],
         ),
     ]

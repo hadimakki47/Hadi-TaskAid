@@ -30,9 +30,18 @@ class Task(models.Model):
         (STATUS_DONE, 'Done'),
     ]
 
+    SUBJECT_CHOICES = [
+        ('math', 'Mathematics'),
+        ('science', 'Science'),
+        ('history', 'History'),
+        ('language', 'Language Arts'),
+        ('other', 'Other'),
+    ]
+
     user = models.ForeignKey(StudyUser, on_delete=models.CASCADE, related_name="tasks", null=True, blank=True)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    subject = models.CharField(max_length=20, choices=SUBJECT_CHOICES, null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     completed = models.BooleanField(default=False)  # Added for template compatibility

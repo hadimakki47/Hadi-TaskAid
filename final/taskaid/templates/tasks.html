@@ -10,200 +10,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tasks - taskAId</title>
-    
+    <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
 <body>
     <div class="sidebar">
-    <div class="sidebar-header">
-        <i data-lucide="brain"></i> taskAId
+        <div class="sidebar-header">
+            <i data-lucide="brain"></i> taskAId
+        </div>
+        <div class="nav-item" data-page="dashboard">
+            <i data-lucide="layout-dashboard"></i> Dashboard
+        </div>
+        <div class="nav-item" data-page="insights">
+            <i data-lucide="lightbulb"></i> Study Insights
+        </div>
+        <div class="nav-item" data-page="tasks">
+            <i data-lucide="clipboard-list"></i> Tasks
+        </div>
+        <div class="nav-item" data-page="leaderboard">
+            <i data-lucide="trophy"></i> Leaderboard
+        </div>
+        <div class="sidebar-bottom">
+            <button class="dark-mode-toggle" id="darkModeToggle">
+                <i data-lucide="moon"></i>
+                <span>Dark mode</span>
+            </button>
+        </div>
     </div>
-    <div class="nav-item" data-page="dashboard">
-        <i data-lucide="layout-dashboard"></i> Dashboard
-    </div>
-    <div class="nav-item" data-page="insights">
-        <i data-lucide="lightbulb"></i> Study Insights
-    </div>
-    <div class="nav-item" data-page="tasks">
-        <i data-lucide="clipboard-list"></i> Tasks
-    </div>
-    <div class="nav-item" data-page="leaderboard">
-        <i data-lucide="trophy"></i> Leaderboard
-    </div>
-    <div class="sidebar-bottom">
-        <button class="dark-mode-toggle" id="darkModeToggle">
-            <i data-lucide="moon"></i>
-            <span>Dark mode</span>
-        </button>
-    </div>
-</div>
 
-    <!-- Main content -->
     <div class="main-content">
-        <!-- Page header -->
         <div class="header">
             <h1 class="page-title"><i data-lucide="clipboard-list"></i> Task Management</h1>
             <div class="header-buttons">
                 <button class="btn btn-primary" id="addTaskBtn"><i data-lucide="plus"></i> Add New Task</button>
-                <button class="btn btn-success"><i data-lucide="layout-template"></i> Templates</button>
             </div>
         </div>
 
-        <!-- Task stats overview -->
+        <!-- Live task stats -->
         <div class="task-stats">
             <div class="stat-item">
-                <div class="stat-number">12</div>
+                <div class="stat-number" id="statTotal">{{ total_tasks }}</div>
                 <div class="stat-label">Total Tasks</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">7</div>
+                <div class="stat-number" id="statCompleted">{{ completed_tasks }}</div>
                 <div class="stat-label">Completed</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">3</div>
+                <div class="stat-number" id="statInProgress">{{ in_progress_tasks }}</div>
                 <div class="stat-label">In Progress</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">2</div>
-                <div class="stat-label">Overdue</div>
+                <div class="stat-number" id="statPending">{{ pending_tasks }}</div>
+                <div class="stat-label">Pending</div>
             </div>
         </div>
 
-        <!-- Task filters -->
+        <!-- Filter buttons -->
         <div class="task-filters">
             <button class="filter-btn active" data-filter="all">All Tasks</button>
-            <button class="filter-btn" data-filter="today">Due Today</button>
-            <button class="filter-btn" data-filter="week">This Week</button>
-            <button class="filter-btn" data-filter="completed">Completed</button>
-            <button class="filter-btn" data-filter="overdue">Overdue</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+            <button class="filter-btn" data-filter="in-progress">In Progress</button>
+            <button class="filter-btn" data-filter="done">Completed</button>
         </div>
 
-        <!-- Tasks sections -->
+        <!-- Task list -->
         <div class="tasks-container">
-            <!-- Today's tasks -->
             <div class="task-section">
-                <div class="section-title"><i data-lucide="calendar"></i> Due Today</div>
-                <div class="task-list">
-                    <div class="task-item urgent">
-                        <input type="checkbox" class="task-checkbox">
+                <div class="task-list" id="taskList">
+                    {% for task in tasks %}
+                    <div class="task-item {% if task.completed %}completed{% endif %}"
+                         data-task-id="{{ task.id }}"
+                         data-status="{{ task.status }}">
+                        <input type="checkbox" class="task-checkbox"
+                               {% if task.completed %}checked{% endif %}
+                               onchange="toggleTask({{ task.id }}, this)">
                         <div class="task-content">
-                            <div class="task-name">Complete Math Assignment Chapter 5</div>
+                            <div class="task-name {% if task.completed %}task-done-text{% endif %}">
+                                {{ task.title }}
+                            </div>
                             <div class="task-details">
-                                <span class="task-subject math">Mathematics</span>
-                                <span class="task-time">Due: 11:59 PM</span>
-                                <span class="task-priority high">High Priority</span>
+                                <select class="status-select status-{{ task.status }}"
+                                        onchange="setStatus({{ task.id }}, this)">
+                                    <option value="pending"     {% if task.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="in-progress" {% if task.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="done"        {% if task.status == 'done' %}selected{% endif %}>Done</option>
+                                </select>
+                                {% if task.description %}
+                                    <span class="task-desc">{{ task.description|truncatechars:60 }}</span>
+                                {% endif %}
+                                {% if task.deadline %}
+                                    <span class="task-time">Due: {{ task.deadline|date:"M d, Y H:i" }}</span>
+                                {% endif %}
+                                <span class="task-created">Added {{ task.created_at|date:"M d" }}</span>
                             </div>
                         </div>
                         <div class="task-actions">
-                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
-                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                            <button class="action-btn delete" onclick="deleteTask({{ task.id }})" title="Delete task">
+                                <i data-lucide="trash-2"></i>
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="task-item">
-                        <input type="checkbox" class="task-checkbox">
-                        <div class="task-content">
-                            <div class="task-name">Read History Chapter 12</div>
-                            <div class="task-details">
-                                <span class="task-subject history">History</span>
-                                <span class="task-time">Due: 6:00 PM</span>
-                                <span class="task-priority medium">Medium Priority</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
-                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
-                        </div>
+                    {% empty %}
+                    <div class="no-tasks-msg" id="noTasksMsg">
+                        <i data-lucide="clipboard-list"></i>
+                        <p>No tasks yet. Click "Add New Task" to get started!</p>
                     </div>
-                </div>
-            </div>
-
-            <!-- This week's tasks -->
-            <div class="task-section">
-                <div class="section-title"><i data-lucide="calendar-days"></i> This Week</div>
-                <div class="task-list">
-                    <div class="task-item">
-                        <input type="checkbox" class="task-checkbox">
-                        <div class="task-content">
-                            <div class="task-name">Science Lab Report - Chemical Reactions</div>
-                            <div class="task-details">
-                                <span class="task-subject science">Science</span>
-                                <span class="task-time">Due: Friday</span>
-                                <span class="task-priority high">High Priority</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
-                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item">
-                        <input type="checkbox" class="task-checkbox">
-                        <div class="task-content">
-                            <div class="task-name">English Essay - Character Analysis</div>
-                            <div class="task-details">
-                                <span class="task-subject language">English</span>
-                                <span class="task-time">Due: Wednesday</span>
-                                <span class="task-priority medium">Medium Priority</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
-                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item">
-                        <input type="checkbox" class="task-checkbox">
-                        <div class="task-content">
-                            <div class="task-name">Review Spanish Vocabulary - Unit 7</div>
-                            <div class="task-details">
-                                <span class="task-subject language">Spanish</span>
-                                <span class="task-time">Due: Thursday</span>
-                                <span class="task-priority low">Low Priority</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
-                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Completed tasks -->
-            <div class="task-section">
-                <div class="section-title"><i data-lucide="check-circle"></i> Completed Recently</div>
-                <div class="task-list">
-                    <div class="task-item completed">
-                        <input type="checkbox" class="task-checkbox" checked>
-                        <div class="task-content">
-                            <div class="task-name">Biology Quiz Preparation</div>
-                            <div class="task-details">
-                                <span class="task-subject science">Biology</span>
-                                <span class="task-completed">Completed 2 hours ago</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
-                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item completed">
-                        <input type="checkbox" class="task-checkbox" checked>
-                        <div class="task-content">
-                            <div class="task-name">Math Homework - Equations</div>
-                            <div class="task-details">
-                                <span class="task-subject math">Mathematics</span>
-                                <span class="task-completed">Completed yesterday</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
-                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -211,15 +123,20 @@
         <!-- Progress overview -->
         <div class="progress-overview">
             <div class="progress-card">
-                <h3><i data-lucide="bar-chart-2"></i> Weekly Progress</h3>
+                <h3><i data-lucide="bar-chart-2"></i> Progress</h3>
                 <div class="progress-ring">
                     <div class="progress-circle">
-                        <span class="progress-text">58%</span>
+                        <span class="progress-text" id="progressPct">
+                            {% if total_tasks > 0 %}
+                                {% widthratio completed_tasks total_tasks 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
                 <div class="progress-details">
-                    <p>7 of 12 tasks completed</p>
-                    <p>Great progress this week!</p>
+                    <p id="progressDetail">{{ completed_tasks }} of {{ total_tasks }} tasks completed</p>
                 </div>
             </div>
         </div>
@@ -230,51 +147,36 @@
         <div class="modal-content">
             <span class="close" id="closeAddTask">&times;</span>
             <h2>Add New Task</h2>
-            <form class="task-form">
+            <form id="addTaskForm">
                 <div class="form-group">
-                    <label for="taskName">Task Name</label>
-                    <input type="text" id="taskName" placeholder="Enter task name..." required>
+                    <label for="taskTitle">Task Title *</label>
+                    <input type="text" id="taskTitle" placeholder="Enter task title..." required>
                 </div>
-                
+                <div class="form-group">
+                    <label for="taskDescription">Description (optional)</label>
+                    <textarea id="taskDescription" placeholder="Add details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskSubject">Subject (optional)</label>
+                    <select id="taskSubject">
+                        <option value="">-- No subject --</option>
+                        <option value="math">Mathematics</option>
+                        <option value="science">Science</option>
+                        <option value="history">History</option>
+                        <option value="language">Language Arts</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
                 <div class="form-row">
                     <div class="form-group half">
-                        <label for="taskSubject">Subject</label>
-                        <select id="taskSubject">
-                            <option value="math">Mathematics</option>
-                            <option value="science">Science</option>
-                            <option value="history">History</option>
-                            <option value="language">Language Arts</option>
-                            <option value="other">Other</option>
-                        </select>
+                        <label for="taskDate">Due Date (optional)</label>
+                        <input type="date" id="taskDate">
                     </div>
-                    
                     <div class="form-group half">
-                        <label for="taskPriority">Priority</label>
-                        <select id="taskPriority">
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group half">
-                        <label for="taskDate">Due Date</label>
-                        <input type="date" id="taskDate" required>
-                    </div>
-                    
-                    <div class="form-group half">
-                        <label for="taskTime">Due Time</label>
+                        <label for="taskTime">Due Time (optional)</label>
                         <input type="time" id="taskTime">
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="taskNotes">Notes (Optional)</label>
-                    <textarea id="taskNotes" placeholder="Add any additional notes..."></textarea>
-                </div>
-                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="cancelTask">Cancel</button>
                     <button type="submit" class="btn btn-primary">Add Task</button>
@@ -282,6 +184,286 @@
             </form>
         </div>
     </div>
+
+    <style>
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+        .task-item:hover { background: var(--hover); }
+        .task-item.completed { opacity: 0.6; }
+
+        .task-checkbox {
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-content { flex: 1; min-width: 0; }
+
+        .task-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .task-done-text {
+            text-decoration: line-through;
+            color: var(--text-tertiary);
+        }
+
+        .task-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .status-select {
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+        }
+        .status-select:hover { filter: brightness(0.93); }
+        .status-select.status-pending     { background: #fff3cd; color: #856404; border-color: #ffc107; }
+        .status-select.status-in-progress { background: #cce5ff; color: #004085; border-color: #4dabf7; }
+        .status-select.status-done        { background: #d4edda; color: #155724; border-color: #28a745; }
+        .status-select option { font-weight: normal; text-transform: none; background: #fff; color: #333; }
+
+        .task-desc  { color: var(--text-secondary); }
+        .task-time  { color: var(--warning); font-weight: 500; }
+        .task-created { color: var(--text-tertiary); }
+
+        .task-actions { flex-shrink: 0; }
+
+        .action-btn.delete {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            color: var(--text-tertiary);
+            opacity: 0.5;
+            transition: opacity 0.2s, background 0.2s, color 0.2s;
+        }
+        .action-btn.delete:hover {
+            opacity: 1;
+            background: rgba(224, 62, 62, 0.08);
+            color: var(--danger);
+        }
+
+        .no-tasks-msg {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-tertiary);
+        }
+        .no-tasks-msg i { width: 48px; height: 48px; margin-bottom: 12px; }
+        .no-tasks-msg p { font-size: 15px; }
+
+        .task-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 24px;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+        .stat-number { font-size: 28px; font-weight: 700; color: var(--accent); }
+        .stat-label  { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+        .task-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .tasks-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .task-section .task-list { padding: 0; }
+
+        .form-row { display: flex; gap: 16px; }
+        .form-group.half { flex: 1; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px; font-size: 14px;
+            background: var(--input-bg, #fff);
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+                 width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content {
+            background: var(--card-bg); margin: 10% auto; padding: 28px;
+            border-radius: 16px; width: 90%; max-width: 520px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        }
+        .close { float: right; font-size: 26px; cursor: pointer; color: var(--text-tertiary); }
+        .close:hover { color: var(--text-primary); }
+
+        .progress-overview { margin-top: 8px; }
+        .progress-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; text-align: center; display: inline-block; min-width: 200px;
+        }
+        .progress-card h3 { margin: 0 0 16px; font-size: 16px; color: var(--text-primary); }
+        .progress-circle {
+            width: 80px; height: 80px; border-radius: 50%;
+            border: 6px solid var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px;
+        }
+        .progress-text { font-size: 18px; font-weight: 700; color: var(--accent); }
+        .progress-details p { margin: 4px 0; font-size: 14px; color: var(--text-secondary); }
+    </style>
+
+    <script>
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        async function makeRequest(url, data) {
+            const formData = new FormData();
+            Object.keys(data).forEach(k => formData.append(k, data[k]));
+            formData.append('csrfmiddlewaretoken', getCSRFToken());
+            const res = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': getCSRFToken() }
+            });
+            return res.json();
+        }
+
+        async function toggleTask(taskId, checkbox) {
+            const newStatus = checkbox.checked ? 'done' : 'pending';
+            const result = await makeRequest('/set_task_status/', { task_id: taskId, status: newStatus });
+            if (result && result.success) {
+                location.reload();
+            } else {
+                checkbox.checked = !checkbox.checked;
+            }
+        }
+
+        async function setStatus(taskId, select) {
+            const newStatus = select.value;
+            const result = await makeRequest('/set_task_status/', { task_id: taskId, status: newStatus });
+            if (result && result.success) {
+                location.reload();
+            } else {
+                alert('Failed to update status');
+                location.reload();
+            }
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm('Delete this task?')) return;
+            const result = await makeRequest('/delete_task/', { task_id: taskId });
+            if (result && result.success) {
+                location.reload();
+            }
+        }
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.dataset.filter;
+                document.querySelectorAll('#taskList .task-item').forEach(item => {
+                    if (filter === 'all') {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = item.dataset.status === filter ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Modal open/close
+        document.getElementById('addTaskBtn').addEventListener('click', () => {
+            document.getElementById('addTaskModal').style.display = 'block';
+        });
+        document.getElementById('closeAddTask').addEventListener('click', () => {
+            document.getElementById('addTaskModal').style.display = 'none';
+        });
+        document.getElementById('cancelTask').addEventListener('click', () => {
+            document.getElementById('addTaskModal').style.display = 'none';
+        });
+        window.addEventListener('click', e => {
+            const modal = document.getElementById('addTaskModal');
+            if (e.target === modal) modal.style.display = 'none';
+        });
+
+        // Add Task form submission
+        document.getElementById('addTaskForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const date = document.getElementById('taskDate').value;
+            const time = document.getElementById('taskTime').value;
+            const subject = document.getElementById('taskSubject').value;
+
+            let deadline = '';
+            if (date) {
+                deadline = time ? `${date}T${time}` : `${date}T00:00`;
+            }
+
+            const result = await makeRequest('/add_task/', { title, description, deadline, subject });
+            if (result && result.success) {
+                document.getElementById('addTaskModal').style.display = 'none';
+                location.reload();
+            } else {
+                alert('Failed to add task: ' + (result?.error || 'unknown error'));
+            }
+        });
+    </script>
 
     <script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
 </body>

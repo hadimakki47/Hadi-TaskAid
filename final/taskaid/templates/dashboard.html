@@ -356,6 +356,17 @@
                     <textarea id="taskDescription" name="description"></textarea>
                 </div>
                 <div class="form-group">
+                    <label for="taskSubject">Subject (optional):</label>
+                    <select id="taskSubject" name="subject">
+                        <option value="">-- No subject --</option>
+                        <option value="math">Mathematics</option>
+                        <option value="science">Science</option>
+                        <option value="history">History</option>
+                        <option value="language">Language Arts</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="taskDeadline">Deadline (optional):</label>
                     <input type="datetime-local" id="taskDeadline" name="deadline">
                 </div>
@@ -667,11 +678,12 @@
         }
 
         // Task functions
-        async function addTask(title, description, deadline) {
+        async function addTask(title, description, deadline, subject) {
             const result = await makeRequest('/add_task/', 'POST', {
                 title: title,
                 description: description,
-                deadline: deadline
+                deadline: deadline,
+                subject: subject || '',
             });
 
             if (result && result.success) {
@@ -844,8 +856,9 @@
                 const title = document.getElementById('taskTitle').value;
                 const description = document.getElementById('taskDescription').value;
                 const deadline = document.getElementById('taskDeadline').value;
-                
-                addTask(title, description, deadline);
+                const subject = document.getElementById('taskSubject').value;
+
+                addTask(title, description, deadline, subject);
                 closeModal('taskModal');
             });
 

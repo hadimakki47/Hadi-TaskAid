@@ -4,7 +4,7 @@ from .views import (
     StudyUserViewSet, TaskViewSet, StudySessionViewSet, HydrationLogViewSet, 
     ReminderViewSet, PostureLogViewSet, BlinkViewSet, StreakViewSet, InsightViewSet,
     dashboard, tasks_page, add_task, insights, tasks, leaderboard,
-    add_task_ajax, toggle_task, delete_task, start_session, end_session,
+    add_task_ajax, toggle_task, delete_task, set_task_status, start_session, end_session,
     log_hydration, log_posture, log_blink, coach_view
 )
 
@@ -31,6 +31,7 @@ urlpatterns = [
     path('add_task/', add_task_ajax, name='add_task_ajax'),
     path('toggle_task/', toggle_task, name='toggle_task'),
     path('delete_task/', delete_task, name='delete_task'),
+    path('set_task_status/', set_task_status, name='set_task_status'),
     path('start_session/', start_session, name='start_session'),
     path('end_session/', end_session, name='end_session'),
     path('log_hydration/', log_hydration, name='log_hydration'),
