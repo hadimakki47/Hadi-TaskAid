@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="{% static 'scripts.js' %}"></script>
+    <script src="{% static 'navigation.js' %}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>taskAId Dashboard</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+   <div class="sidebar">
+    <div class="sidebar-header">
+        <i data-lucide="brain"></i> taskAId
+    </div>
+    <div class="nav-item" data-page="dashboard">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+    </div>
+    <div class="nav-item" data-page="insights">
+        <i data-lucide="lightbulb"></i> Study Insights
+    </div>
+    <div class="nav-item" data-page="tasks">
+        <i data-lucide="clipboard-list"></i> Tasks
+    </div>
+    <div class="nav-item" data-page="leaderboard">
+        <i data-lucide="trophy"></i> Leaderboard
+    </div>
+    <div class="sidebar-bottom">
+        <button class="dark-mode-toggle" id="darkModeToggle">
+            <i data-lucide="moon"></i>
+            <span>Dark mode</span>
+        </button>
+    </div>
+</div>
+
+    <!-- Main dashboard content -->
+    <div class="main-content">
+        <!-- Page header with buttons -->
+        <div class="header">
+            <h1 class="page-title"><i data-lucide="bar-chart-2"></i> Study Analytics</h1>
+            <div class="header-buttons">
+                <button class="btn btn-primary" id="startSessionBtn"><i data-lucide="play"></i> Start Session</button>
+                <button class="btn btn-success" id="addTaskBtn">+ New Task</button>
+            </div>
+        </div>
+
+        <!-- AI Assistant section - now with dynamic data -->
+        <div class="ai-assistant-card">
+            <div style="display: flex; gap: 20px;">
+                <div class="camera-container">
+                    <div class="camera-icon" id="cameraIcon"><i data-lucide="camera"></i></div>
+                    <video id="webcamPreview" autoplay muted playsinline></video>
+                    <canvas id="outputCanvas" style="display: none;"></canvas>
+                </div>
+                <div class="ai-content">
+                    <div class="ai-title">AI Study Assistant</div>
+                    <div class="ai-description" id="aiDescription">
+                        {% if insights %}
+                            {{ insights.0.text }}
+                        {% else %}
+                            Based on my analysis, you seem focused. Start a study session to get personalized insights!
+                        {% endif %}
+                    </div>
+                    <div class="ai-description2">
+                        Blinking Count: <span id="blinkCounter">0</span>
+                    </div>
+                    <div class="ai-description2">
+                        AI result: <span id="AIresult">N/A</span>
+                    </div>
+                   </div>
+            </div>
+            <div class="webcam-text">Webcam analyzes your study habits</div>
+            <button class="allow-camera-btn" id="allowCameraBtn">Allow Camera Access</button>
+            <div class="analysis-metrics">
+                <div class="metric">
+                    <div class="metric-label">Session Status</div>
+                    <div class="metric-value focused" id="sessionStatus">
+                        {% if current_session %}
+                            Active Session
+                        {% else %}
+                            Ready to start
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Blink Rate</div>
+                    <div class="metric-value blink-rate" id="blinkRate">
+                        {% if blink_logs %}
+                            {{ blink_logs|length }} blinks today
+                        {% else %}
+                            No data yet
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Study Time Today</div>
+                    <div class="metric-value distraction" id="studyTimeToday">
+                        {% if total_study_time %}
+                            {{ total_study_time }} min
+                        {% else %}
+                            0 min
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="quick-actions">
+            <button class="quick-btn" id="addWaterBtn"><i data-lucide="droplets"></i> Log Water</button>
+            <button class="quick-btn" id="addPostureBtn"><i data-lucide="activity"></i> Log Posture</button>
+            <button class="quick-btn" id="endSessionBtn" style="display: {% if current_session %}block{% else %}none{% endif %};"><i data-lucide="square"></i> End Session</button>
+        </div>
+     
+        <!-- Main stats cards - now dynamic -->
+        <div class="stats-grid">
+            <div class="stat-card focus">
+                <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+                <div class="stat-value" id="currentStreak">
+                    {% if streaks %}
+                        {{ streaks.0.current_streak }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-label">Current Streak</div>
+                <div class="stat-sublabel" id="longestStreak">
+                    {% if streaks %}
+                        Longest: {{ streaks.0.longest_streak }}
+                    {% else %}
+                        Start studying to build your streak!
+                    {% endif %}
+                </div>
+            </div>
+            <div class="stat-card water">
+                <div class="stat-icon"><i data-lucide="droplets"></i></div>
+                <div class="stat-value" id="totalWater">
+                    {% if total_hydration %}
+                        {{ total_hydration }}ml
+                    {% else %}
+                        0ml
+                    {% endif %}
+                </div>
+                <div class="stat-label">Water Intake</div>
+                <div class="stat-sublabel">Goal: 2000ml</div>
+            </div>
+            <div class="stat-card study-time">
+                <div class="stat-icon"><i data-lucide="timer"></i></div>
+                <div class="stat-value" id="totalStudyTime">
+                    {% if total_study_time %}
+                        {{ total_study_time }}min
+                    {% else %}
+                        0min
+                    {% endif %}
+                </div>
+                <div class="stat-label">Study Time</div>
+                <div class="stat-sublabel">Today's sessions</div>
+            </div>
+            <div class="stat-card tasks">
+                <div class="stat-icon"><i data-lucide="check-circle"></i></div>
+                <div class="stat-value" id="taskProgress">
+                    {{ completed_tasks }}/{{ total_tasks }}
+                </div>
+                <div class="stat-label">Tasks Done</div>
+                <div class="stat-sublabel" id="taskPercentage">
+                    {% if total_tasks > 0 %}
+                        {% widthratio completed_tasks total_tasks 100 %}% complete
+                    {% else %}
+                        No tasks yet
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Three column layout for additional info -->
+        <div class="bottom-grid">
+            <!-- Recent Study Sessions -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon"><i data-lucide="trending-up"></i></span>
+                    Recent Study Sessions
+                </div>
+                <div class="chart-container" id="sessionsContainer">
+                    {% for session in sessions|slice:":5" %}
+                        <div class="session-item">
+                            <div class="session-time">
+                                {{ session.start_time|date:"M d, H:i" }}
+                            </div>
+                            <div class="session-duration">
+                                {% if session.end_time %}
+                                    {{ session.duration }} min
+                                {% else %}
+                                    <span style="color: #4CAF50;">Ongoing</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="no-data">No study sessions yet. Start your first session!</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Todo list - now dynamic -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon"><i data-lucide="clipboard-list"></i></span>
+                    To-Do List
+                </div>
+                <div id="tasksList">
+                    {% for task in tasks|slice:":6" %}
+                        <div class="todo-item" data-task-id="{{ task.id }}">
+                            <input type="checkbox" class="todo-checkbox" {% if task.completed %}checked{% endif %} onchange="toggleTask({{ task.id }})">
+                            <span class="todo-text {% if task.completed %}completed{% endif %}">
+                                {{ task.title }}
+                            </span>
+                            {% if task.deadline %}
+                                <span class="task-deadline">
+                                    Due: {{ task.deadline|date:"M d" }}
+                                </span>
+                            {% endif %}
+                            <button class="delete-task-btn" onclick="deleteTask({{ task.id }})" title="Delete task"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    {% empty %}
+                        <div class="no-tasks">No tasks yet. Create your first task!</div>
+                    {% endfor %}
+                </div>
+                <div class="add-task" id="addTaskTrigger">+ Add Task</div>
+            </div>
+
+            <!-- Hydration tracking -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon"><i data-lucide="droplets"></i></span>
+                    Hydration Today
+                </div>
+                <div id="hydrationList">
+                    {% for log in hydration_logs|slice:":5" %}
+                        <div class="hydration-item">
+                            <div class="hydration-time">{{ log.timestamp|date:"H:i" }}</div>
+                            <div class="hydration-amount">{{ log.amount }}ml</div>
+                        </div>
+                    {% empty %}
+                        <div class="no-data">No hydration logs today. Stay hydrated!</div>
+                    {% endfor %}
+                </div>
+                <div class="hydration-total" id="hydrationTotal">
+                    Total: {{ total_hydration|default:0 }}ml / 2000ml
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips and issues row - now dynamic -->
+        <div class="tips-issues-grid">
+            <div class="card tips-card">
+                <div class="card-title">
+                    <span class="card-icon"><i data-lucide="lightbulb"></i></span>
+                    Improvement Tips
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon"><i data-lucide="alarm-clock"></i></div>
+                    <span>Take a 5-minute break every 25 minutes</span>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon"><i data-lucide="droplets"></i></div>
+                    <span id="hydrationTip">
+                        {% if total_hydration < 1000 %}
+                            You need more water! Try to drink more today.
+                        {% else %}
+                            Great hydration! Keep drinking water regularly.
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon"><i data-lucide="eye"></i></div>
+                    <span>Use the 20-20-20 rule for eye care: every 20 minutes, look at something 20 feet away for 20 seconds</span>
+                </div>
+            </div>
+
+            <div class="card issues-card">
+                <div class="card-title">
+                    <span class="card-icon"><i data-lucide="alert-triangle"></i></span>
+                    Detected Issues
+                </div>
+                <div id="issuesList">
+                    {% if blink_logs|length > 50 %}
+                        <div class="issue-item">
+                            <div class="issue-icon"><i data-lucide="eye"></i></div>
+                            <span>High blinking rate detected ({{ blink_logs|length }} blinks) - potential eye strain</span>
+                        </div>
+                    {% endif %}
+                    {% if total_hydration < 500 %}
+                        <div class="issue-item">
+                            <div class="issue-icon"><i data-lucide="droplets"></i></div>
+                            <span>Low water intake detected ({{ total_hydration|default:0 }}ml)</span>
+                        </div>
+                    {% endif %}
+                    {% if posture_logs %}
+                        {% for posture in posture_logs|slice:":1" %}
+                            {% if "poor" in posture.status|lower or "bad" in posture.status|lower %}
+                                <div class="issue-item">
+                                    <div class="issue-icon"><i data-lucide="activity"></i></div>
+                                    <span>Poor posture detected: {{ posture.status }}</span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    {% if not blink_logs and not total_hydration and not posture_logs %}
+                        <div class="no-issues">
+                            <span>No issues detected. Great job!</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional sections for insights -->
+        {% if insights %}
+            <div class="card insights-card">
+                <div class="card-title">
+                    <span class="card-icon"><i data-lucide="brain"></i></span>
+                    Latest Insights
+                </div>
+                <div id="insightsList">
+                    {% for insight in insights|slice:":3" %}
+                        <div class="insight-item">
+                            <div class="insight-time">{{ insight.created_at|date:"M d, H:i" }}</div>
+                            <div class="insight-text">{{ insight.text }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Add Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('taskModal')">&times;</span>
+            <h2>Add New Task</h2>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title:</label>
+                    <input type="text" id="taskTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description:</label>
+                    <textarea id="taskDescription" name="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskDeadline">Deadline (optional):</label>
+                    <input type="datetime-local" id="taskDeadline" name="deadline">
+                </div>
+                <button type="submit" class="btn btn-primary">Add Task</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Water Modal -->
+    <div id="waterModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('waterModal')">&times;</span>
+            <h2>Log Water Intake</h2>
+            <form id="waterForm">
+                <div class="form-group">
+                    <label for="waterAmount">Amount (ml):</label>
+                    <input type="number" id="waterAmount" name="amount" min="1" max="2000" value="250" required>
+                </div>
+                <div class="quick-amounts">
+                    <button type="button" class="amount-btn" onclick="setWaterAmount(250)">250ml</button>
+                    <button type="button" class="amount-btn" onclick="setWaterAmount(500)">500ml</button>
+                    <button type="button" class="amount-btn" onclick="setWaterAmount(750)">750ml</button>
+                </div>
+                <button type="submit" class="btn btn-primary">Log Water</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Posture Modal -->
+    <div id="postureModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('postureModal')">&times;</span>
+            <h2>Log Posture Status</h2>
+            <form id="postureForm">
+                <div class="form-group">
+                    <label for="postureStatus">Posture Status:</label>
+                    <select id="postureStatus" name="status" required>
+                        <option value="">Select status...</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                        <option value="Excellent">Excellent</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Log Posture</button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        /* Additional styles for dynamic content */
+        
+        .task-deadline {
+            font-size: 12px;
+            color: var(--warning);
+            margin-left: 10px;
+        }
+
+        .delete-task-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0.5;
+            color: var(--text-tertiary);
+            transition: opacity var(--transition), background var(--transition);
+        }
+
+        .delete-task-btn:hover {
+            opacity: 1;
+            background-color: rgba(224, 62, 62, 0.08);
+            color: var(--danger);
+        }
+
+        .hydration-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hydration-amount {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .hydration-total {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #2196F3;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .no-data, .no-tasks, .no-issues {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        .insights-card {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .insight-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        
+        .insight-time {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .insight-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .quick-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .quick-amounts {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .amount-btn {
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+            color: #2196F3;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .amount-btn:hover {
+            background: #2196F3;
+            color: white;
+        }
+
+        .add-task {
+            cursor: pointer;
+            color: #4CAF50;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            border: 2px dashed #4CAF50;
+            border-radius: 8px;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .add-task:hover {
+            background: #e8f5e8;
+        }
+    </style>
+
+    <script>
+        
+        // Global variables
+        let currentSession = null;
+        
+       
+        let camera = null;
+       
+       
+
+        // Get CSRF token
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        // Generic AJAX function
+        async function makeRequest(url, method = 'POST', data = {}) {
+            try {
+                const formData = new FormData();
+                Object.keys(data).forEach(key => {
+                    formData.append(key, data[key]);
+                });
+                formData.append('csrfmiddlewaretoken', getCSRFToken());
+
+                const response = await fetch(url, {
+                    method: method,
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Request failed:', error);
+                alert('An error occurred. Please try again.');
+                return null;
+            }
+        }
+
+        // Modal functions
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Check for active session on page load
+        function checkActiveSession() {
+            {% if current_session %}
+                currentSession = {{ current_session.id }};
+                document.getElementById('sessionStatus').textContent = 'Active Session';
+                document.getElementById('startSessionBtn').style.display = 'none';
+                document.getElementById('endSessionBtn').style.display = 'block';
+            {% endif %}
+        }
+
+        // Task functions
+        async function addTask(title, description, deadline) {
+            const result = await makeRequest('/add_task/', 'POST', {
+                title: title,
+                description: description,
+                deadline: deadline
+            });
+
+            if (result && result.success) {
+                location.reload(); // Refresh to show new task
+            }
+        }
+
+        async function toggleTask(taskId) {
+            const result = await makeRequest('/toggle_task/', 'POST', {
+                task_id: taskId
+            });
+
+            if (result && result.success) {
+                location.reload();
+            }
+        }
+
+        async function deleteTask(taskId) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                const result = await makeRequest('/delete_task/', 'POST', {
+                    task_id: taskId
+                });
+
+                if (result && result.success) {
+                    location.reload();
+                }
+            }
+        }
+
+        // Study session functions - UPDATED to preserve active sessions
+        async function startStudySession() {
+            const result = await makeRequest('/start_session/', 'POST', {});
+            
+            if (result && result.success) {
+                currentSession = result.session_id;
+                document.getElementById('sessionStatus').textContent = 'Active Session';
+                document.getElementById('startSessionBtn').style.display = 'none';
+                document.getElementById('endSessionBtn').style.display = 'block';
+                
+                // Start blink detection if camera is available
+               
+                
+                // Show different message based on whether session was already active
+                if (result.already_active) {
+                    alert('Session was already running!');
+                } else {
+                    alert('Study session started!');
+                }
+            }
+        }
+
+        async function endStudySession() {
+            if (currentSession) {
+                const result = await makeRequest('/end_session/', 'POST', {
+                    session_id: currentSession
+                });
+
+                if (result && result.success) {
+                    currentSession = null;
+                    document.getElementById('sessionStatus').textContent = 'Session Ended';
+                    document.getElementById('startSessionBtn').style.display = 'block';
+                    document.getElementById('endSessionBtn').style.display = 'none';
+                    
+                    alert(`Session ended! You studied for ${result.duration} minutes.`);
+                    location.reload();
+                }
+            }
+        }
+
+        // Hydration functions
+        async function logWater(amount) {
+            const result = await makeRequest('/log_hydration/', 'POST', {
+                amount: amount
+            });
+
+            if (result && result.success) {
+                // Update UI without full page reload
+                const totalWaterEl = document.getElementById('totalWater');
+                const currentTotal = parseInt(totalWaterEl.textContent) || 0;
+                const newTotal = currentTotal + amount;
+                totalWaterEl.textContent = newTotal + 'ml';
+                
+                // Add to hydration list
+                const hydrationList = document.getElementById('hydrationList');
+                const now = new Date();
+                const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                               now.getMinutes().toString().padStart(2, '0');
+                
+                const newItem = document.createElement('div');
+                newItem.className = 'hydration-item';
+                newItem.innerHTML = `
+                    <div class="hydration-time">${timeStr}</div>
+                    <div class="hydration-amount">${amount}ml</div>
+                `;
+                hydrationList.insertBefore(newItem, hydrationList.firstChild);
+                
+                // Update total display
+                const totalDisplay = document.getElementById('hydrationTotal');
+                totalDisplay.textContent = `Total: ${newTotal}ml / 2000ml`;
+                
+                alert(`Logged ${amount}ml of water!`);
+            }
+        }
+
+        function setWaterAmount(amount) {
+            document.getElementById('waterAmount').value = amount;
+        }
+
+        // Posture functions
+        async function logPosture(status) {
+            const result = await makeRequest('/log_posture/', 'POST', {
+                status: status
+            });
+
+            if (result && result.success) {
+                alert(`Posture logged as: ${status}`);
+            }
+        }
+
+        // Blink detection functions
+        // async function logBlink() {
+        //     if (currentSession) {
+        //         const result = await makeRequest('/log_blink/', 'POST', {
+        //             session_id: currentSession
+        //         });
+
+        //         if (result && result.success) {
+        //             const blinkCount = document.getElementById('blinkCount');
+        //             blinkCount.textContent = parseInt(blinkCount.textContent) + 1;
+        //         }
+        //     }
+        // }
+
+    
+
+       // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for active session on page load
+            checkActiveSession();
+            
+            // Add Task Modal
+            document.getElementById('addTaskBtn').addEventListener('click', function() {
+                showModal('taskModal');
+            });
+
+            document.getElementById('addTaskTrigger').addEventListener('click', function() {
+                showModal('taskModal');
+            });
+
+            // Add Water Modal
+            document.getElementById('addWaterBtn').addEventListener('click', function() {
+                showModal('waterModal');
+            });
+
+            // Add Posture Modal
+            document.getElementById('addPostureBtn').addEventListener('click', function() {
+                showModal('postureModal');
+            });
+
+            // Start/End Session buttons
+            document.getElementById('startSessionBtn').addEventListener('click', startStudySession);
+            document.getElementById('endSessionBtn').addEventListener('click', endStudySession);
+
+            // Camera access button
+           
+
+            // Form submissions
+            document.getElementById('taskForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const title = document.getElementById('taskTitle').value;
+                const description = document.getElementById('taskDescription').value;
+                const deadline = document.getElementById('taskDeadline').value;
+                
+                addTask(title, description, deadline);
+                closeModal('taskModal');
+            });
+
+            document.getElementById('waterForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const amount = parseInt(document.getElementById('waterAmount').value);
+                
+                logWater(amount);
+                closeModal('waterModal');
+            });
+
+            document.getElementById('postureForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const status = document.getElementById('postureStatus').value;
+                
+                logPosture(status);
+                closeModal('postureModal');
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', function(event) {
+                const modals = ['taskModal', 'waterModal', 'postureModal'];
+                modals.forEach(modalId => {
+                    const modal = document.getElementById(modalId);
+                    if (event.target === modal) {
+                        closeModal(modalId);
+                    }
+                });
+            });
+        });
+    </script>
+       <script>
+// Calls your Django endpoint (already set up)
+async function askCoach(signals){
+  const r = await fetch('/api/coach/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(signals)
+  });
+  return r.json();
+}
+
+function renderCoachAdvice(data){
+  const card = document.getElementById('coachMetric');
+  if (!card) return;
+
+  card.hidden = false;
+  card.querySelector('.coach-advice').textContent =
+    data.advice || 'No advice yet.';
+  const p = Number(data.priority ?? 3);
+  const badge = document.getElementById('coachPriority');
+  if (badge) badge.textContent = 'P' + (p || 3);
+
+  const ul = card.querySelector('.coach-actions');
+  ul.innerHTML = '';
+  (data.actions || []).forEach(a => {
+    const li = document.createElement('li');
+    li.textContent = a;
+    ul.appendChild(li);
+  });
+}
+
+// Example: call once on load; later call whenever you update blink/posture
+document.addEventListener('DOMContentLoaded', async () => {
+  // Parse current blink number from your metric text (e.g., "12 blinks/min (High)")
+  
+  async function updateCoach() {
+    try {
+       console.log(blinkCount, slouch, notslouch, happy, neutral, sad);
+      const result = await askCoach({
+        blinks: blinkCount  ,      // replace with your real signal
+        slouch: slouch  ,  
+        notslouch: notslouch,   // replace with your real signal
+        happy: happy,
+        neutral: neutral,
+        sad: sad
+      });
+      document.getElementById("AIresult").textContent = result.advice;
+    } catch (err) {
+      console.error("Error updating coach:", err);
+    }
+  }
+
+  // Run once immediately
+  await updateCoach();
+
+  // Repeat every 60 seconds (60000 ms)
+  setInterval(updateCoach, 10000);
+});
+</script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+</body>
+</html>

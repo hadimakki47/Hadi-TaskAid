@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="{% static 'scripts.js' %}"></script>
+    <script src="{% static 'navigation.js' %}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - taskAId</title>
+    
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i data-lucide="brain"></i> taskAId
+        </div>
+        <div class="nav-item" data-page="dashboard">
+            <i data-lucide="layout-dashboard"></i> Dashboard
+        </div>
+        <div class="nav-item" data-page="insights">
+            <i data-lucide="lightbulb"></i> Study Insights
+        </div>
+        <div class="nav-item" data-page="tasks">
+            <i data-lucide="clipboard-list"></i> Tasks
+        </div>
+        <div class="nav-item" data-page="leaderboard">
+            <i data-lucide="trophy"></i> Leaderboard
+        </div>
+        <div class="sidebar-bottom">
+            <button class="dark-mode-toggle" id="darkModeToggle">
+                <i data-lucide="moon"></i>
+                <span>Dark mode</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+        <!-- Page header -->
+        <div class="header">
+            <h1 class="page-title"><i data-lucide="trophy"></i> Leaderboard</h1>
+            <div class="header-buttons">
+                <button class="btn btn-primary"><i data-lucide="target"></i> Join Challenge</button>
+                <button class="btn btn-success"><i data-lucide="users"></i> Invite Friends</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard filters -->
+        <div class="leaderboard-filters">
+            <button class="filter-btn active" data-period="week">This Week</button>
+            <button class="filter-btn" data-period="month">This Month</button>
+            <button class="filter-btn" data-period="all">All Time</button>
+            <button class="filter-btn" data-category="friends">Friends Only</button>
+        </div>
+
+        <!-- Top 3 podium -->
+        <div class="podium-section">
+            <div class="podium">
+                <!-- Second place -->
+                <div class="podium-place second">
+                    <div class="podium-user">
+                        <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                        <div class="user-name">You</div>
+                        <div class="user-score">28.2h</div>
+                    </div>
+                    <div class="podium-rank">2</div>
+                </div>
+                
+                <!-- First place -->
+                <div class="podium-place first">
+                    <div class="podium-crown"><i data-lucide="crown"></i></div>
+                    <div class="podium-user">
+                        <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                        <div class="user-name">Sarah Chen</div>
+                        <div class="user-score">32.5h</div>
+                    </div>
+                    <div class="podium-rank">1</div>
+                </div>
+                
+                <!-- Third place -->
+                <div class="podium-place third">
+                    <div class="podium-user">
+                        <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                        <div class="user-name">Alex Kim</div>
+                        <div class="user-score">24.7h</div>
+                    </div>
+                    <div class="podium-rank">3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed rankings -->
+        <div class="rankings-section">
+            <div class="rankings-header">
+                <h3><i data-lucide="medal"></i> Full Rankings</h3>
+                <div class="ranking-stats">
+                    <span>Your current rank: <strong>#2</strong></span>
+                    <span>Total participants: <strong>47</strong></span>
+                </div>
+            </div>
+            
+            <div class="rankings-table">
+                <div class="ranking-header">
+                    <div class="rank-col">Rank</div>
+                    <div class="user-col">User</div>
+                    <div class="stats-col">Study Time</div>
+                    <div class="stats-col">Focus Score</div>
+                    <div class="stats-col">Tasks</div>
+                    <div class="trend-col">Trend</div>
+                </div>
+                
+                <div class="ranking-row winner">
+                    <div class="rank-col">
+                        <div class="rank-number">1</div>
+                        <div class="rank-badge gold"><i data-lucide="crown"></i></div>
+                    </div>
+                    <div class="user-col">
+                        <div class="user-info">
+                            <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                            <div class="user-details">
+                                <div class="user-name">Sarah Chen</div>
+                                <div class="user-status online">Online now</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-col">32.5h</div>
+                    <div class="stats-col">94%</div>
+                    <div class="stats-col">18/20</div>
+                    <div class="trend-col up"><i data-lucide="trending-up"></i> +2</div>
+                </div>
+                
+                <div class="ranking-row current-user">
+                    <div class="rank-col">
+                        <div class="rank-number">2</div>
+                        <div class="rank-badge silver"><i data-lucide="medal"></i></div>
+                    </div>
+                    <div class="user-col">
+                        <div class="user-info">
+                            <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                            <div class="user-details">
+                                <div class="user-name">You</div>
+                                <div class="user-status online">Online now</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-col">28.2h</div>
+                    <div class="stats-col">87%</div>
+                    <div class="stats-col">15/20</div>
+                    <div class="trend-col up"><i data-lucide="trending-up"></i> +1</div>
+                </div>
+                
+                <div class="ranking-row">
+                    <div class="rank-col">
+                        <div class="rank-number">3</div>
+                        <div class="rank-badge bronze"><i data-lucide="award"></i></div>
+                    </div>
+                    <div class="user-col">
+                        <div class="user-info">
+                            <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                            <div class="user-details">
+                                <div class="user-name">Alex Kim</div>
+                                <div class="user-status idle">Idle</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-col">24.7h</div>
+                    <div class="stats-col">82%</div>
+                    <div class="stats-col">14/20</div>
+                    <div class="trend-col down"><i data-lucide="trending-down"></i> -1</div>
+                </div>
+                
+                <div class="ranking-row">
+                    <div class="rank-col">
+                        <div class="rank-number">4</div>
+                    </div>
+                    <div class="user-col">
+                        <div class="user-info">
+                            <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                            <div class="user-details">
+                                <div class="user-name">Mike Johnson</div>
+                                <div class="user-status offline">Offline</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-col">22.1h</div>
+                    <div class="stats-col">79%</div>
+                    <div class="stats-col">12/20</div>
+                    <div class="trend-col up"><i data-lucide="trending-up"></i> +3</div>
+                </div>
+                
+                <div class="ranking-row">
+                    <div class="rank-col">
+                        <div class="rank-number">5</div>
+                    </div>
+                    <div class="user-col">
+                        <div class="user-info">
+                            <div class="user-avatar"><i data-lucide="user-circle"></i></div>
+                            <div class="user-details">
+                                <div class="user-name">Emma Wilson</div>
+                                <div class="user-status online">Online now</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-col">20.5h</div>
+                    <div class="stats-col">85%</div>
+                    <div class="stats-col">16/20</div>
+                    <div class="trend-col neutral"><i data-lucide="minus"></i></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Challenges Section -->
+        <div class="challenges-section">
+            <div class="section-header">
+                <h3><i data-lucide="flame"></i> Active Challenges</h3>
+                <button class="btn btn-primary">View All</button>
+            </div>
+            <div class="challenges-grid">
+                <div class="challenge-card">
+                    <div class="challenge-title">Weekend Warrior</div>
+                    <div class="challenge-desc">Study 10 hours between Friday-Sunday</div>
+                    <div class="challenge-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65%"></div>
+                        </div>
+                        <span>6.5/10 hours</span>
+                    </div>
+                    <div class="challenge-time">Ends in 2 days</div>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-title">Morning Person</div>
+                    <div class="challenge-desc">Study before 9 AM for 5 days</div>
+                    <div class="challenge-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%"></div>
+                        </div>
+                        <span>2/5 days</span>
+                    </div>
+                    <div class="challenge-time">Ends in 5 days</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+</body>
+</html>

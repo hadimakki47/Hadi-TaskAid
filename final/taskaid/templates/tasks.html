@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="{% static 'scripts.js' %}"></script>
+    <script src="{% static 'navigation.js' %}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - taskAId</title>
+    
+</head>
+<body>
+    <div class="sidebar">
+    <div class="sidebar-header">
+        <i data-lucide="brain"></i> taskAId
+    </div>
+    <div class="nav-item" data-page="dashboard">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+    </div>
+    <div class="nav-item" data-page="insights">
+        <i data-lucide="lightbulb"></i> Study Insights
+    </div>
+    <div class="nav-item" data-page="tasks">
+        <i data-lucide="clipboard-list"></i> Tasks
+    </div>
+    <div class="nav-item" data-page="leaderboard">
+        <i data-lucide="trophy"></i> Leaderboard
+    </div>
+    <div class="sidebar-bottom">
+        <button class="dark-mode-toggle" id="darkModeToggle">
+            <i data-lucide="moon"></i>
+            <span>Dark mode</span>
+        </button>
+    </div>
+</div>
+
+    <!-- Main content -->
+    <div class="main-content">
+        <!-- Page header -->
+        <div class="header">
+            <h1 class="page-title"><i data-lucide="clipboard-list"></i> Task Management</h1>
+            <div class="header-buttons">
+                <button class="btn btn-primary" id="addTaskBtn"><i data-lucide="plus"></i> Add New Task</button>
+                <button class="btn btn-success"><i data-lucide="layout-template"></i> Templates</button>
+            </div>
+        </div>
+
+        <!-- Task stats overview -->
+        <div class="task-stats">
+            <div class="stat-item">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">7</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">3</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+
+        <!-- Task filters -->
+        <div class="task-filters">
+            <button class="filter-btn active" data-filter="all">All Tasks</button>
+            <button class="filter-btn" data-filter="today">Due Today</button>
+            <button class="filter-btn" data-filter="week">This Week</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+            <button class="filter-btn" data-filter="overdue">Overdue</button>
+        </div>
+
+        <!-- Tasks sections -->
+        <div class="tasks-container">
+            <!-- Today's tasks -->
+            <div class="task-section">
+                <div class="section-title"><i data-lucide="calendar"></i> Due Today</div>
+                <div class="task-list">
+                    <div class="task-item urgent">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name">Complete Math Assignment Chapter 5</div>
+                            <div class="task-details">
+                                <span class="task-subject math">Mathematics</span>
+                                <span class="task-time">Due: 11:59 PM</span>
+                                <span class="task-priority high">High Priority</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
+                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name">Read History Chapter 12</div>
+                            <div class="task-details">
+                                <span class="task-subject history">History</span>
+                                <span class="task-time">Due: 6:00 PM</span>
+                                <span class="task-priority medium">Medium Priority</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
+                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- This week's tasks -->
+            <div class="task-section">
+                <div class="section-title"><i data-lucide="calendar-days"></i> This Week</div>
+                <div class="task-list">
+                    <div class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name">Science Lab Report - Chemical Reactions</div>
+                            <div class="task-details">
+                                <span class="task-subject science">Science</span>
+                                <span class="task-time">Due: Friday</span>
+                                <span class="task-priority high">High Priority</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
+                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name">English Essay - Character Analysis</div>
+                            <div class="task-details">
+                                <span class="task-subject language">English</span>
+                                <span class="task-time">Due: Wednesday</span>
+                                <span class="task-priority medium">Medium Priority</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
+                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name">Review Spanish Vocabulary - Unit 7</div>
+                            <div class="task-details">
+                                <span class="task-subject language">Spanish</span>
+                                <span class="task-time">Due: Thursday</span>
+                                <span class="task-priority low">Low Priority</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
+                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completed tasks -->
+            <div class="task-section">
+                <div class="section-title"><i data-lucide="check-circle"></i> Completed Recently</div>
+                <div class="task-list">
+                    <div class="task-item completed">
+                        <input type="checkbox" class="task-checkbox" checked>
+                        <div class="task-content">
+                            <div class="task-name">Biology Quiz Preparation</div>
+                            <div class="task-details">
+                                <span class="task-subject science">Biology</span>
+                                <span class="task-completed">Completed 2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
+                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item completed">
+                        <input type="checkbox" class="task-checkbox" checked>
+                        <div class="task-content">
+                            <div class="task-name">Math Homework - Equations</div>
+                            <div class="task-details">
+                                <span class="task-subject math">Mathematics</span>
+                                <span class="task-completed">Completed yesterday</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="action-btn edit"><i data-lucide="pencil"></i></button>
+                            <button class="action-btn delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress overview -->
+        <div class="progress-overview">
+            <div class="progress-card">
+                <h3><i data-lucide="bar-chart-2"></i> Weekly Progress</h3>
+                <div class="progress-ring">
+                    <div class="progress-circle">
+                        <span class="progress-text">58%</span>
+                    </div>
+                </div>
+                <div class="progress-details">
+                    <p>7 of 12 tasks completed</p>
+                    <p>Great progress this week!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeAddTask">&times;</span>
+            <h2>Add New Task</h2>
+            <form class="task-form">
+                <div class="form-group">
+                    <label for="taskName">Task Name</label>
+                    <input type="text" id="taskName" placeholder="Enter task name..." required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="taskSubject">Subject</label>
+                        <select id="taskSubject">
+                            <option value="math">Mathematics</option>
+                            <option value="science">Science</option>
+                            <option value="history">History</option>
+                            <option value="language">Language Arts</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group half">
+                        <label for="taskPriority">Priority</label>
+                        <select id="taskPriority">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="taskDate">Due Date</label>
+                        <input type="date" id="taskDate" required>
+                    </div>
+                    
+                    <div class="form-group half">
+                        <label for="taskTime">Due Time</label>
+                        <input type="time" id="taskTime">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskNotes">Notes (Optional)</label>
+                    <textarea id="taskNotes" placeholder="Add any additional notes..."></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelTask">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+</body>
+</html>
